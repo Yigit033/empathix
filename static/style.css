@@ -1,0 +1,161 @@
+/* Ana stil dosyası */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Navbar stillemesi */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+    color: #4CAF50;
+}
+
+/* Kart stillemesi */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    font-weight: bold;
+    padding: 15px 20px;
+}
+
+/* Analiz sonuç kartı */
+.result-card {
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.bg-purple {
+    background-color: #9C27B0;
+}
+
+/* Form stillemesi */
+.form-control {
+    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.form-control:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+}
+
+textarea.form-control {
+    min-height: 150px;
+}
+
+/* Buton stillemesi */
+.btn {
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.btn-primary:hover {
+    background-color: #3d8b40;
+    border-color: #3d8b40;
+}
+
+.btn-danger {
+    background-color: #f44336;
+    border-color: #f44336;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+    border-color: #d32f2f;
+}
+
+/* Badge stillemesi */
+.badge {
+    padding: 6px 10px;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+/* Footer stillemesi */
+.footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e5e5e5;
+}
+
+/* Tablo stillemesi */
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+/* Duygu renkleri */
+.positive, .bg-success {
+    background-color: #4CAF50 !important;
+}
+
+.negative, .bg-danger {
+    background-color: #f44336 !important;
+}
+
+.neutral, .bg-warning {
+    background-color: #FFC107 !important;
+}
+
+.error, .bg-purple {
+    background-color: #9C27B0 !important;
+}
+
+/* Hata mesajı */
+.error-message {
+    color: #d32f2f;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #ffebee;
+    border-radius: 4px;
+}
+
+/* Sayfalama */
+.pagination .page-link {
+    color: #4CAF50;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+}
+
+/* Responsive ayarlamalar */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 15px;
+    }
+    
+    h1, h2 {
+        font-size: 1.8rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+    }
+}

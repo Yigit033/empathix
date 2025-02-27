@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Profilim - Empathix{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Kullanıcı Bilgileri</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x text-primary"></i>
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p>{{ user.email }}</p>
+                <p><small class="text-muted">Kayıt Tarihi: {{ user.created_at.strftime('%d.%m.%Y') }}</small></p>
+                <p><strong>Toplam Analiz:</strong> {{ total_analyses }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Hızlı Bağlantılar</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">Yeni Analiz</a>
+                    <a href="{{ url_for('history') }}" class="btn btn-secondary">Analiz Geçmişim</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Duygu Analizi İstatistiklerim</h3>
+            </div>
+            <div class="card-body">
+                {% if total_analyses > 0 %}
+                <div class="text-center mb-4">
+                    <img src="data:image/png;base64,{{ sentiment_chart }}" class="img-fluid" alt="Duygu Analizi Dağılımı">
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz hiç analiz yapmadınız. İstatistikler analiz yaptıkça görüntülenecektir.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Dil Dağılımı</h3>
+            </div>
+            <div class="card-body">
+                {% if total_analyses > 0 %}
+                <div class="text-center mb-4">
+                    <img src="data:image/png;base64,{{ language_chart }}" class="img-fluid" alt="Dil Dağılımı">
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz hiç analiz yapmadınız. İstatistikler analiz yaptıkça görüntülenecektir.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">Zaman İçindeki Analizler</h3>
+            </div>
+            <div class="card-body">
+                {% if total_analyses > 0 %}
+                <div class="text-center mb-4">
+                    <img src="data:image/png;base64,{{ time_series_chart }}" class="img-fluid" alt="Zaman İçindeki Analizler">
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz hiç analiz yapmadınız. İstatistikler analiz yaptıkça görüntülenecektir.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h3 class="mb-0">Son Analizlerim</h3>
+            </div>
+            <div class="card-body">
+                {% if analyses %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Metin</th>
+                                <th>Dil</th>
+                                <th>Duygu</th>
+                                <th>Güven</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for analysis in analyses %}
+                            <tr>
+                                <td>{{ analysis.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>{{ analysis.text[:30] }}{% if analysis.text|length > 30 %}...{% endif %}</td>
+                                <td>{{ analysis.original_language }}</td>
+                                <td>
+                                    <span class="badge {% if analysis.sentiment == 'Pozitif' %}bg-success{% elif analysis.sentiment == 'Negatif' %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ analysis.sentiment }}
+                                    </span>
+                                </td>
+                                <td>%{{ analysis.confidence }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('history') }}" class="btn btn-outline-primary">Tüm Analizlerimi Gör</a>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Henüz hiç analiz yapmadınız. Analizler burada listelenecektir.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

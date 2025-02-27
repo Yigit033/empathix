@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Kullanıcı Tercihleri - Empathix{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0">Kullanıcı Tercihleri</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('preferences') }}">
+                    <div class="mb-4">
+                        <h4>Genel Tercihler</h4>
+                        <div class="mb-3">
+                            <label for="preferred_language" class="form-label">Tercih Edilen Dil</label>
+                            <select class="form-select" id="preferred_language" name="preferred_language">
+                                <option value="">Otomatik Tespit</option>
+                                {% for code, name in supported_languages.items() %}
+                                <option value="{{ code }}" {% if preferences.preferred_language == code %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Analizlerde tercih ettiğiniz dil. Otomatik tespit seçeneği, her metinde dili otomatik olarak tespit eder.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="theme" class="form-label">Tema</label>
+                            <select class="form-select" id="theme" name="theme">
+                                <option value="light" {% if preferences.theme == 'light' %}selected{% endif %}>Açık Tema</option>
+                                <option value="dark" {% if preferences.theme == 'dark' %}selected{% endif %}>Koyu Tema</option>
+                                <option value="auto" {% if preferences.theme == 'auto' %}selected{% endif %}>Sistem Teması</option>
+                            </select>
+                            <div class="form-text">Uygulama teması.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>Analiz Tercihleri</h4>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="show_detailed_emotions" name="show_detailed_emotions" {% if preferences.show_detailed_emotions %}checked{% endif %}>
+                            <label class="form-check-label" for="show_detailed_emotions">Detaylı Duygu Kategorilerini Göster</label>
+                            <div class="form-text">Analiz sonuçlarında mutluluk, üzüntü, öfke, korku ve şaşkınlık gibi detaylı duygu kategorilerini gösterir.</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="show_text_suggestions" name="show_text_suggestions" {% if preferences.show_text_suggestions %}checked{% endif %}>
+                            <label class="form-check-label" for="show_text_suggestions">Metin Önerilerini Göster</label>
+                            <div class="form-text">Analiz sonuçlarında metin iyileştirme önerilerini, dilbilgisi düzeltmelerini ve alternatif ifadeleri gösterir.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Tercihleri Kaydet</button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

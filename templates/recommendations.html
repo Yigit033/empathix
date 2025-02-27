@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Kişiselleştirilmiş Öneriler - Empathix{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0">Kişiselleştirilmiş Öneriler</h2>
+            </div>
+            <div class="card-body">
+                {% if recommendations.analysis_count > 0 %}
+                    <div class="alert alert-info mb-4">
+                        <h4 class="alert-heading">Analiz İstatistikleriniz</h4>
+                        <p>Bugüne kadar toplam <strong>{{ recommendations.analysis_count }}</strong> analiz yaptınız.</p>
+                    </div>
+                    
+                    {% if recommendations.recommendations %}
+                        <h4 class="mb-3">Size Özel Öneriler</h4>
+                        <div class="list-group mb-4">
+                            {% for recommendation in recommendations.recommendations %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            {% if recommendation.type == 'language' %}
+                                                <i class="fas fa-language me-2"></i> Dil Önerisi
+                                            {% elif recommendation.type == 'sentiment' %}
+                                                <i class="fas fa-smile me-2"></i> Duygu Önerisi
+                                            {% elif recommendation.type == 'emotion' %}
+                                                <i class="fas fa-heart me-2"></i> Duygu Kategorisi Önerisi
+                                            {% elif recommendation.type == 'usage' %}
+                                                <i class="fas fa-chart-line me-2"></i> Kullanım Önerisi
+                                            {% else %}
+                                                <i class="fas fa-lightbulb me-2"></i> Öneri
+                                            {% endif %}
+                                        </h5>
+                                    </div>
+                                    <p class="mb-1">{{ recommendation.message }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <h4 class="mb-3">Analiz Kalıplarınız</h4>
+                    <div class="row">
+                        {% if recommendations.patterns.top_languages %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">En Çok Kullandığınız Diller</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for lang, count in recommendations.patterns.top_languages %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    {{ lang }}
+                                                    <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if recommendations.patterns.top_sentiments %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">En Sık Aldığınız Sonuçlar</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for sentiment, count in recommendations.patterns.top_sentiments %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    {{ sentiment }}
+                                                    <span class="badge 
+                                                        {% if sentiment == 'Pozitif' %}bg-success
+                                                        {% elif sentiment == 'Negatif' %}bg-danger
+                                                        {% else %}bg-warning{% endif %} rounded-pill">
+                                                        {{ count }}
+                                                    </span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if recommendations.patterns.top_emotions %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">En Sık Hissettiğiniz Duygular</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for emotion, count in recommendations.patterns.top_emotions %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    {% if emotion == 'happiness' %}
+                                                        Mutluluk
+                                                        <span class="badge bg-success rounded-pill">{{ count }}</span>
+                                                    {% elif emotion == 'sadness' %}
+                                                        Üzüntü
+                                                        <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                                                    {% elif emotion == 'anger' %}
+                                                        Öfke
+                                                        <span class="badge bg-danger rounded-pill">{{ count }}</span>
+                                                    {% elif emotion == 'fear' %}
+                                                        Korku
+                                                        <span class="badge bg-warning rounded-pill">{{ count }}</span>
+                                                    {% elif emotion == 'surprise' %}
+                                                        Şaşkınlık
+                                                        <span class="badge bg-info rounded-pill">{{ count }}</span>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <h4 class="alert-heading">Henüz yeterli veri yok!</h4>
+                        <p>Kişiselleştirilmiş öneriler almak için daha fazla analiz yapmanız gerekmektedir. Metin analizi yaparak daha doğru öneriler alabilirsiniz.</p>
+                        <hr>
+                        <p class="mb-0">Hemen <a href="{{ url_for('index') }}" class="alert-link">yeni bir analiz</a> yaparak başlayabilirsiniz.</p>
+                    </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Yeni Analiz</a>
+                    <a href="{{ url_for('history') }}" class="btn btn-secondary btn-lg">Analiz Geçmişim</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

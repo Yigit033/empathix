@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Analiz Sonucu - Empathix{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0">Duygu Analizi Sonucu</h2>
+            </div>
+            <div class="card-body">
+                {% if result %}
+                <div class="result-card {% if result.sentiment == 'Pozitif' %}bg-success{% elif result.sentiment == 'Negatif' %}bg-danger{% elif result.sentiment == 'Hata' %}bg-purple{% else %}bg-warning{% endif %} text-white p-4 mb-4">
+                    <h3 class="text-center">{{ result.sentiment }}</h3>
+                    <div class="progress mt-3 mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ result.confidence }}%;" aria-valuenow="{{ result.confidence }}" aria-valuemin="0" aria-valuemax="100">{{ result.confidence }}%</div>
+                    </div>
+                    <p class="text-center mb-0">Güven Skoru: %{{ result.confidence }}</p>
+                    
+                    {% if result.intensity %}
+                    <div class="mt-3 text-center">
+                        <h5>Duygu Yoğunluğu: 
+                            {% if result.intensity == 1 %}
+                                <span class="badge bg-info">Hafif</span>
+                            {% elif result.intensity == 2 %}
+                                <span class="badge bg-warning">Orta</span>
+                            {% elif result.intensity == 3 %}
+                                <span class="badge bg-danger">Yüksek</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if result.emotion_scores %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Detaylı Duygu Analizi</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Duygu Kategorileri</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Mutluluk
+                                        <div class="progress" style="width: 60%;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ result.emotion_scores.happiness * 100 }}%;" aria-valuenow="{{ result.emotion_scores.happiness * 100 }}" aria-valuemin="0" aria-valuemax="100">{{ result.emotion_scores.happiness }}</div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Üzüntü
+                                        <div class="progress" style="width: 60%;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ result.emotion_scores.sadness * 100 }}%;" aria-valuenow="{{ result.emotion_scores.sadness * 100 }}" aria-valuemin="0" aria-valuemax="100">{{ result.emotion_scores.sadness }}</div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Öfke
+                                        <div class="progress" style="width: 60%;">
+                                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ result.emotion_scores.anger * 100 }}%;" aria-valuenow="{{ result.emotion_scores.anger * 100 }}" aria-valuemin="0" aria-valuemax="100">{{ result.emotion_scores.anger }}</div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Korku
+                                        <div class="progress" style="width: 60%;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ result.emotion_scores.fear * 100 }}%;" aria-valuenow="{{ result.emotion_scores.fear * 100 }}" aria-valuemin="0" aria-valuemax="100">{{ result.emotion_scores.fear }}</div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Şaşkınlık
+                                        <div class="progress" style="width: 60%;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ result.emotion_scores.surprise * 100 }}%;" aria-valuenow="{{ result.emotion_scores.surprise * 100 }}" aria-valuemin="0" aria-valuemax="100">{{ result.emotion_scores.surprise }}</div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                {% if result.highlighted_emotions %}
+                                <h5>Duygusal Kelimeler</h5>
+                                <ul class="list-group">
+                                    {% for word in result.highlighted_emotions %}
+                                    <li class="list-group-item">
+                                        <span class="badge 
+                                            {% if word.emotion == 'happiness' %}bg-success
+                                            {% elif word.emotion == 'sadness' %}bg-primary
+                                            {% elif word.emotion == 'anger' %}bg-danger
+                                            {% elif word.emotion == 'fear' %}bg-warning
+                                            {% elif word.emotion == 'surprise' %}bg-info
+                                            {% endif %}">
+                                            {{ word.emotion }}
+                                        </span>
+                                        <strong>{{ word.word }}</strong>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Analiz Edilen Metin</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">{{ result.text }}</p>
+                    </div>
+                </div>
+                
+                {% if result.language_name %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Dil Bilgisi</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Tespit Edilen Dil: <strong>{{ result.language_name }}</strong></p>
+                        {% if result.translated_text %}
+                        <div class="mt-3">
+                            <h5>Çeviri (İngilizce)</h5>
+                            <p class="text-muted">{{ result.translated_text }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if text_improvements %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Metin Önerileri</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if text_improvements.improved_text.changes_made %}
+                        <div class="mb-4">
+                            <h5>İyileştirilmiş Metin</h5>
+                            <div class="alert alert-success">
+                                <p>{{ text_improvements.improved_text.improved_text }}</p>
+                            </div>
+                            <p class="text-muted">{{ text_improvements.improved_text.message }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if text_improvements.grammar_corrections.changes_made %}
+                        <div class="mb-4">
+                            <h5>Dilbilgisi Düzeltmeleri</h5>
+                            <div class="alert alert-info">
+                                <p>{{ text_improvements.grammar_corrections.corrected_text }}</p>
+                            </div>
+                            <p class="text-muted">{{ text_improvements.grammar_corrections.message }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if text_improvements.alternative_expressions.alternatives %}
+                        <div class="mb-4">
+                            <h5>Alternatif İfadeler</h5>
+                            <ul class="list-group">
+                                {% for alt in text_improvements.alternative_expressions.alternatives %}
+                                <li class="list-group-item">
+                                    <strong>{{ alt.original }}</strong> yerine:
+                                    {% for alternative in alt.alternatives %}
+                                    <span class="badge bg-secondary me-1">{{ alternative }}</span>
+                                    {% endfor %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if current_user.is_authenticated %}
+                        <div class="mt-3">
+                            <h5>Bu öneriler faydalı mıydı?</h5>
+                            <form action="{{ url_for('submit_text_suggestion_feedback', analysis_id=result.analysis_id) }}" method="post">
+                                <input type="hidden" name="original_text" value="{{ result.text }}">
+                                {% if text_improvements.improved_text and text_improvements.improved_text.improved_text %}
+                                <input type="hidden" name="suggested_text" value="{{ text_improvements.improved_text.improved_text }}">
+                                {% else %}
+                                <input type="hidden" name="suggested_text" value="Öneri yok">
+                                {% endif %}
+                                <button type="submit" name="is_helpful" value="true" class="btn btn-success me-2">Evet, faydalıydı</button>
+                                <button type="submit" name="is_helpful" value="false" class="btn btn-danger">Hayır, faydalı değildi</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if result.error %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Hata!</h4>
+                    <p>{{ result.error }}</p>
+                </div>
+                {% endif %}
+                
+                {% if current_user.is_authenticated and result.sentiment != 'Hata' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Analiz Geri Bildirimi</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Bu analiz sonucu doğru mu?</p>
+                        <form action="{{ url_for('submit_feedback', analysis_id=result.analysis_id) }}" method="post">
+                            <div class="mb-3">
+                                <div class="btn-group" role="group">
+                                    <button type="submit" name="feedback" value="true" class="btn btn-success">Evet, doğru</button>
+                                    <button type="submit" name="feedback" value="false" class="btn btn-danger">Hayır, yanlış</button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feedback_text" class="form-label">Ek geri bildirim (isteğe bağlı):</label>
+                                <textarea class="form-control" id="feedback_text" name="feedback_text" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if not current_user.is_authenticated %}
+                <div class="alert alert-info">
+                    <p>Analiz sonuçlarınızı kaydetmek ve geçmiş analizlerinizi görmek için <a href="{{ url_for('register') }}">kayıt olun</a> veya <a href="{{ url_for('login') }}">giriş yapın</a>.</p>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-warning">
+                    <p>Herhangi bir analiz sonucu bulunamadı. Lütfen tekrar deneyin.</p>
+                </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Yeni Analiz</a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('history') }}" class="btn btn-secondary btn-lg">Analiz Geçmişim</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

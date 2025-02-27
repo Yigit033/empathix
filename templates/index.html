@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Empathix - Çok Dilli Duygu Analizi{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0"><i class="fas fa-brain"></i> Empathix - Duygu Analizi</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <p class="lead text-center">Metninizi girin ve duygusal tonunu analiz edin!</p>
+                    <p class="text-center text-muted">12+ dilde duygu analizi desteği</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('analyze') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.text.label(class="form-label") }}
+                        {{ form.text(class="form-control", rows=5, placeholder="Analiz etmek istediğiniz metni buraya yazın...") }}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                        <button type="button" class="btn btn-danger btn-lg" onclick="clearText()">Temizle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Desteklenen Diller</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for code, name in supported_languages.items() %}
+                    <div class="col-md-3 col-sm-4 col-6 mb-2">
+                        <span class="badge bg-secondary">{{ name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Empathix Hakkında</h3>
+            </div>
+            <div class="card-body">
+                <p>Empathix, metinlerdeki duygusal tonu analiz eden gelişmiş bir yapay zeka uygulamasıdır. Doğal dil işleme teknolojileri kullanarak, metinlerin pozitif, negatif veya nötr olup olmadığını belirler.</p>
+                <p>Özellikler:</p>
+                <ul>
+                    <li>12+ dil desteği</li>
+                    <li>Hızlı ve doğru analiz</li>
+                    <li>Kullanıcı hesapları ile analiz geçmişi</li>
+                    <li>Detaylı istatistikler ve grafikler</li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Analiz geçmişinizi kaydetmek ve kişisel istatistiklerinizi görmek için <a href="{{ url_for('register') }}">kayıt olun</a> veya <a href="{{ url_for('login') }}">giriş yapın</a>.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0"><i class="fas fa-magic"></i> Metin Önerileri Özelliği</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon bg-light p-3 rounded-circle mb-2">
+                            <i class="fas fa-smile-beam fa-2x text-warning"></i>
+                        </div>
+                        <h5>Pozitif Alternatifler</h5>
+                        <p class="text-muted">Negatif ifadeleriniz için daha olumlu alternatifler sunuyoruz.</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon bg-light p-3 rounded-circle mb-2">
+                            <i class="fas fa-spell-check fa-2x text-primary"></i>
+                        </div>
+                        <h5>Dilbilgisi Düzeltmeleri</h5>
+                        <p class="text-muted">Metninizin dilbilgisi hatalarını otomatik olarak düzeltiyoruz.</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="feature-icon bg-light p-3 rounded-circle mb-2">
+                            <i class="fas fa-exchange-alt fa-2x text-success"></i>
+                        </div>
+                        <h5>Alternatif İfadeler</h5>
+                        <p class="text-muted">Daha etkili iletişim için alternatif kelime ve ifadeler öneriyoruz.</p>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <p class="mb-0"><i class="fas fa-info-circle"></i> <strong>Nasıl Çalışır?</strong> Metninizi analiz ettikten sonra, sonuç sayfasında size özel metin önerileri sunulacaktır. Bu öneriler, iletişiminizi daha etkili ve olumlu hale getirmenize yardımcı olur.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function clearText() {
+    document.getElementById('text').value = '';
+}
+</script>
+{% endblock %}
