@@ -19,6 +19,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlit
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 
+# Vercel ortamında olup olmadığımızı kontrol et
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+
 # Veritabanı ve giriş yöneticisini başlat
 db.init_app(app)
 login_manager = LoginManager()
@@ -33,22 +36,23 @@ def load_user(user_id):
 # Veritabanını oluştur
 @app.before_first_request
 def create_tables():
-    db.create_all()
-    # Varsayılan duygu istatistiklerini ekle
-    if SentimentStats.query.count() == 0:
-        db.session.add(SentimentStats(sentiment="Pozitif", count=0))
-        db.session.add(SentimentStats(sentiment="Negatif", count=0))
-        db.session.add(SentimentStats(sentiment="Nötr", count=0))
-        db.session.commit()
-    
-    # Varsayılan duygu kategorileri istatistiklerini ekle
-    if EmotionStats.query.count() == 0:
-        db.session.add(EmotionStats(emotion="happiness", count=0))
-        db.session.add(EmotionStats(emotion="sadness", count=0))
-        db.session.add(EmotionStats(emotion="anger", count=0))
-        db.session.add(EmotionStats(emotion="fear", count=0))
-        db.session.add(EmotionStats(emotion="surprise", count=0))
-        db.session.commit()
+    if not IS_VERCEL:
+        db.create_all()
+        # Varsayılan duygu istatistiklerini ekle
+        if SentimentStats.query.count() == 0:
+            db.session.add(SentimentStats(sentiment="Pozitif", count=0))
+            db.session.add(SentimentStats(sentiment="Negatif", count=0))
+            db.session.add(SentimentStats(sentiment="Nötr", count=0))
+            db.session.commit()
+        
+        # Varsayılan duygu kategorileri istatistiklerini ekle
+        if EmotionStats.query.count() == 0:
+            db.session.add(EmotionStats(emotion="happiness", count=0))
+            db.session.add(EmotionStats(emotion="sadness", count=0))
+            db.session.add(EmotionStats(emotion="anger", count=0))
+            db.session.add(EmotionStats(emotion="fear", count=0))
+            db.session.add(EmotionStats(emotion="surprise", count=0))
+            db.session.commit()
 
 @app.route('/')
 def index():
@@ -84,25 +88,26 @@ def analyze():
                     adapted_result = adapt_analysis_to_preferences(result, current_user.id)
                     
                     # Analizi veritabanına kaydet
-                    analysis = Analysis(
-                        text=text,
-                        original_language=result['language_code'],
-                        sentiment=result['sentiment'],
-                        confidence=result['confidence'],
-                        user_id=current_user.id,
-                        happiness=result['emotion_scores']['happiness'],
-                        sadness=result['emotion_scores']['sadness'],
-                        anger=result['emotion_scores']['anger'],
-                        fear=result['emotion_scores']['fear'],
-                        surprise=result['emotion_scores']['surprise'],
-                        intensity=result['intensity']
-                    )
-                    db.session.add(analysis)
-                    
-                    # İstatistikleri güncelle
-                    update_stats(result)
-                    
-                    db.session.commit()
+                    if not IS_VERCEL:
+                        analysis = Analysis(
+                            text=text,
+                            original_language=result['language_code'],
+                            sentiment=result['sentiment'],
+                            confidence=result['confidence'],
+                            user_id=current_user.id,
+                            happiness=result['emotion_scores']['happiness'],
+                            sadness=result['emotion_scores']['sadness'],
+                            anger=result['emotion_scores']['anger'],
+                            fear=result['emotion_scores']['fear'],
+                            surprise=result['emotion_scores']['surprise'],
+                            intensity=result['intensity']
+                        )
+                        db.session.add(analysis)
+                        
+                        # İstatistikleri güncelle
+                        update_stats(result)
+                        
+                        db.session.commit()
                     
                     # Analiz ID'sini result sözlüğüne ekle
                     result['analysis_id'] = analysis.id
@@ -157,7 +162,8 @@ def submit_feedback(analysis_id):
     feedback_value = request.form.get('feedback') == 'true'
     feedback_text = request.form.get('feedback_text')
     
-    analysis = record_analysis_feedback(analysis_id, feedback_value, feedback_text)
+    if not IS_VERCEL:
+        analysis = record_analysis_feedback(analysis_id, feedback_value, feedback_text)
     
     if analysis:
         flash('Geri bildiriminiz için teşekkürler!', 'success')
@@ -174,7 +180,8 @@ def submit_text_suggestion_feedback(analysis_id):
     suggested_text = request.form.get('suggested_text')
     is_helpful = request.form.get('is_helpful') == 'true'
     
-    feedback = record_text_suggestion_feedback(analysis_id, original_text, suggested_text, is_helpful)
+    if not IS_VERCEL:
+        feedback = record_text_suggestion_feedback(analysis_id, original_text, suggested_text, is_helpful)
     
     if feedback:
         flash('Öneri geri bildiriminiz için teşekkürler!', 'success')
@@ -199,8 +206,9 @@ def register():
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
+        if not IS_VERCEL:
+            db.session.add(user)
+            db.session.commit()
         flash('Tebrikler, başarıyla kayıt oldunuz! Şimdi giriş yapabilirsiniz.', 'success')
         return redirect(url_for('login'))
     
@@ -235,8 +243,9 @@ def logout():
 @login_required
 def profile():
     # Kullanıcının analizlerini al
-    user_analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.created_at.desc()).limit(5).all()
-    total_analyses = Analysis.query.filter_by(user_id=current_user.id).count()
+    if not IS_VERCEL:
+        user_analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.created_at.desc()).limit(5).all()
+        total_analyses = Analysis.query.filter_by(user_id=current_user.id).count()
     
     # İstatistikleri oluştur
     sentiment_chart = get_sentiment_distribution(current_user.id) if total_analyses > 0 else None
@@ -255,8 +264,9 @@ def profile():
 @login_required
 def history():
     page = request.args.get('page', 1, type=int)
-    analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(
-        Analysis.created_at.desc()).paginate(page=page, per_page=10)
+    if not IS_VERCEL:
+        analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(
+            Analysis.created_at.desc()).paginate(page=page, per_page=10)
     return render_template('history.html', analyses=analyses)
 
 @app.route('/stats')
@@ -275,8 +285,9 @@ def stats():
         time_range = 30
     
     # Genel istatistikleri al
-    total_analyses = Analysis.query.count()
-    total_users = User.query.count()
+    if not IS_VERCEL:
+        total_analyses = Analysis.query.count()
+        total_users = User.query.count()
     
     # Duygu istatistikleri
     sentiment_query = db.session.query(
@@ -338,22 +349,23 @@ def api_analyze():
         if user_id:
             user = User.query.get(user_id)
             if user:
-                analysis = Analysis(
-                    text=text,
-                    original_language=result['language_code'],
-                    sentiment=result['sentiment'],
-                    confidence=result['confidence'],
-                    user_id=user.id,
-                    happiness=result['emotion_scores']['happiness'],
-                    sadness=result['emotion_scores']['sadness'],
-                    anger=result['emotion_scores']['anger'],
-                    fear=result['emotion_scores']['fear'],
-                    surprise=result['emotion_scores']['surprise'],
-                    intensity=result['intensity']
-                )
-                db.session.add(analysis)
-                update_stats(result)
-                db.session.commit()
+                if not IS_VERCEL:
+                    analysis = Analysis(
+                        text=text,
+                        original_language=result['language_code'],
+                        sentiment=result['sentiment'],
+                        confidence=result['confidence'],
+                        user_id=user.id,
+                        happiness=result['emotion_scores']['happiness'],
+                        sadness=result['emotion_scores']['sadness'],
+                        anger=result['emotion_scores']['anger'],
+                        fear=result['emotion_scores']['fear'],
+                        surprise=result['emotion_scores']['surprise'],
+                        intensity=result['intensity']
+                    )
+                    db.session.add(analysis)
+                    update_stats(result)
+                    db.session.commit()
         
         return jsonify(result)
     
@@ -388,14 +400,16 @@ def inject_active_page():
         return request.endpoint == endpoint
     return {'is_active_page': is_active_page}
 
-if __name__ == '__main__':
-    # Veritabanı tablolarını oluştur
-    with app.app_context():
+# Vercel deployment için
+with app.app_context():
+    if not IS_VERCEL:
         db.create_all()
-    
-    # Admin panelini başlat
     from admin import init_admin
     init_admin(app, db)
-    
+
+# Vercel için uygulama nesnesini dışa aktar
+application = app
+
+if __name__ == '__main__':
     # Uygulamayı çalıştır
     app.run(debug=True)

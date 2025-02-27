@@ -3,11 +3,11 @@ Admin paneli için Flask-Admin yapılandırması.
 Bu modül, veritabanı tablolarını görüntülemek için bir admin paneli sağlar.
 """
 
-from flask_admin import Admin
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.base import AdminIndexView
 from flask_login import current_user
 from flask import redirect, url_for, flash
+import os
 
 # Güvenli ModelView sınıfı - Sadece admin kullanıcıların erişimine izin verir
 class SecureModelView(ModelView):
@@ -20,12 +20,21 @@ class SecureModelView(ModelView):
 
 # Güvenli AdminIndexView sınıfı
 class SecureAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            return redirect(url_for('login'))
+        return super(SecureAdminIndexView, self).index()
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
 
     def inaccessible_callback(self, name, **kwargs):
         flash('Bu sayfaya erişim izniniz yok. Lütfen admin olarak giriş yapın.', 'danger')
         return redirect(url_for('login'))
+
+# Vercel ortamında olup olmadığımızı kontrol et
+IS_VERCEL = os.environ.get('VERCEL') == '1'
 
 # Admin panelini oluştur
 admin = Admin(name='Empathix Admin', template_mode='bootstrap4', index_view=SecureAdminIndexView())
@@ -101,6 +110,11 @@ def init_admin(app, db):
         app: Flask uygulaması
         db: SQLAlchemy veritabanı nesnesi
     """
+    # Vercel'de çalışırken admin panelini devre dışı bırak
+    if IS_VERCEL:
+        return
+        
+    # Modelleri içeri aktar
     from models import User, Analysis, LanguageStats, SentimentStats, UserPreference, TextSuggestionFeedback, EmotionStats
     admin.init_app(app)
     
