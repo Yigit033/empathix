@@ -3,18 +3,9 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 import os
 from datetime import datetime
 
-from models import db, User, Analysis, LanguageStats, SentimentStats, UserPreference, TextSuggestionFeedback, EmotionStats
-from forms import LoginForm, RegistrationForm, AnalysisForm
-from sentiment_analyzer import analyze_sentiment, SUPPORTED_LANGUAGES
-from stats import get_sentiment_distribution, get_language_distribution, get_time_series_analysis, update_stats
-from text_improver import get_text_improvements, improve_negative_text, correct_grammar, suggest_alternative_expressions
-from user_preferences import get_or_create_user_preferences, update_user_preferences, record_analysis_feedback
-from user_preferences import record_text_suggestion_feedback, get_user_analysis_patterns, get_personalized_recommendations, adapt_analysis_to_preferences
-from admin import init_admin
-
 # Flask uygulamasını oluştur
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'gelistirilebilir-gizli-anahtar'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'empathix-secret-key')
 
 # Veritabanı bağlantı URL'sini belirle
 # Railway PostgreSQL bağlantısı için
@@ -30,6 +21,15 @@ app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 IS_PRODUCTION = os.environ.get('RAILWAY_ENVIRONMENT') == 'production'
 
 # Veritabanı ve giriş yöneticisini başlat
+from models import db, User, Analysis, LanguageStats, SentimentStats, UserPreference, TextSuggestionFeedback, EmotionStats
+from forms import LoginForm, RegistrationForm, AnalysisForm
+from sentiment_analyzer import analyze_sentiment, SUPPORTED_LANGUAGES
+from stats import get_sentiment_distribution, get_language_distribution, get_time_series_analysis, update_stats
+from text_improver import get_text_improvements, improve_negative_text, correct_grammar, suggest_alternative_expressions
+from user_preferences import get_or_create_user_preferences, update_user_preferences, record_analysis_feedback
+from user_preferences import record_text_suggestion_feedback, get_user_analysis_patterns, get_personalized_recommendations, adapt_analysis_to_preferences
+from admin import init_admin
+
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)

@@ -10,9 +10,9 @@ if __name__ == "__main__":
         from models import db
         db.create_all()
         
-    # Admin panelini başlat
-    from admin import init_admin
-    init_admin(app, db)
+        # Admin panelini başlat
+        from admin import init_admin
+        init_admin(app, db)
     
     # Uygulamayı çalıştır
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=False)
