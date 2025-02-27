@@ -15,12 +15,19 @@ from admin import init_admin
 # Flask uygulamasını oluştur
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'gelistirilebilir-gizli-anahtar'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///empathix.db'
+
+# Veritabanı bağlantı URL'sini belirle
+# Railway PostgreSQL bağlantısı için
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'sqlite:///empathix.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 
-# Vercel ortamında olup olmadığımızı kontrol et
-IS_VERCEL = os.environ.get('VERCEL') == '1'
+# Railway ortamında olup olmadığımızı kontrol et
+IS_PRODUCTION = os.environ.get('RAILWAY_ENVIRONMENT') == 'production'
 
 # Veritabanı ve giriş yöneticisini başlat
 db.init_app(app)
@@ -36,7 +43,7 @@ def load_user(user_id):
 # Veritabanını oluştur
 @app.before_first_request
 def create_tables():
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         db.create_all()
         # Varsayılan duygu istatistiklerini ekle
         if SentimentStats.query.count() == 0:
@@ -88,7 +95,7 @@ def analyze():
                     adapted_result = adapt_analysis_to_preferences(result, current_user.id)
                     
                     # Analizi veritabanına kaydet
-                    if not IS_VERCEL:
+                    if not IS_PRODUCTION:
                         analysis = Analysis(
                             text=text,
                             original_language=result['language_code'],
@@ -162,7 +169,7 @@ def submit_feedback(analysis_id):
     feedback_value = request.form.get('feedback') == 'true'
     feedback_text = request.form.get('feedback_text')
     
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         analysis = record_analysis_feedback(analysis_id, feedback_value, feedback_text)
     
     if analysis:
@@ -180,7 +187,7 @@ def submit_text_suggestion_feedback(analysis_id):
     suggested_text = request.form.get('suggested_text')
     is_helpful = request.form.get('is_helpful') == 'true'
     
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         feedback = record_text_suggestion_feedback(analysis_id, original_text, suggested_text, is_helpful)
     
     if feedback:
@@ -206,7 +213,7 @@ def register():
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
-        if not IS_VERCEL:
+        if not IS_PRODUCTION:
             db.session.add(user)
             db.session.commit()
         flash('Tebrikler, başarıyla kayıt oldunuz! Şimdi giriş yapabilirsiniz.', 'success')
@@ -243,7 +250,7 @@ def logout():
 @login_required
 def profile():
     # Kullanıcının analizlerini al
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         user_analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(Analysis.created_at.desc()).limit(5).all()
         total_analyses = Analysis.query.filter_by(user_id=current_user.id).count()
     
@@ -264,7 +271,7 @@ def profile():
 @login_required
 def history():
     page = request.args.get('page', 1, type=int)
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         analyses = Analysis.query.filter_by(user_id=current_user.id).order_by(
             Analysis.created_at.desc()).paginate(page=page, per_page=10)
     return render_template('history.html', analyses=analyses)
@@ -285,7 +292,7 @@ def stats():
         time_range = 30
     
     # Genel istatistikleri al
-    if not IS_VERCEL:
+    if not IS_PRODUCTION:
         total_analyses = Analysis.query.count()
         total_users = User.query.count()
     
@@ -349,7 +356,7 @@ def api_analyze():
         if user_id:
             user = User.query.get(user_id)
             if user:
-                if not IS_VERCEL:
+                if not IS_PRODUCTION:
                     analysis = Analysis(
                         text=text,
                         original_language=result['language_code'],
@@ -400,16 +407,18 @@ def inject_active_page():
         return request.endpoint == endpoint
     return {'is_active_page': is_active_page}
 
-# Vercel deployment için
-with app.app_context():
-    if not IS_VERCEL:
-        db.create_all()
-    from admin import init_admin
-    init_admin(app, db)
-
-# Vercel için uygulama nesnesini dışa aktar
+# Uygulama nesnesini dışa aktar
 application = app
 
 if __name__ == '__main__':
+    # Veritabanı tablolarını oluştur
+    with app.app_context():
+        db.create_all()
+    
+    # Admin panelini başlat
+    from admin import init_admin
+    init_admin(app, db)
+    
     # Uygulamayı çalıştır
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)

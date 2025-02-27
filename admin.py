@@ -33,8 +33,8 @@ class SecureAdminIndexView(AdminIndexView):
         flash('Bu sayfaya erişim izniniz yok. Lütfen admin olarak giriş yapın.', 'danger')
         return redirect(url_for('login'))
 
-# Vercel ortamında olup olmadığımızı kontrol et
-IS_VERCEL = os.environ.get('VERCEL') == '1'
+# Railway ortamında olup olmadığımızı kontrol et
+IS_PRODUCTION = os.environ.get('RAILWAY_ENVIRONMENT') == 'production'
 
 # Admin panelini oluştur
 admin = Admin(name='Empathix Admin', template_mode='bootstrap4', index_view=SecureAdminIndexView())
@@ -110,8 +110,8 @@ def init_admin(app, db):
         app: Flask uygulaması
         db: SQLAlchemy veritabanı nesnesi
     """
-    # Vercel'de çalışırken admin panelini devre dışı bırak
-    if IS_VERCEL:
+    # Railway'de çalışırken admin panelini devre dışı bırak
+    if IS_PRODUCTION:
         return
         
     # Modelleri içeri aktar
