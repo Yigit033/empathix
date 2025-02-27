@@ -1,0 +1,5 @@
+[phases.setup]
+nixPkgs = ["python39", "postgresql"]
+
+[start]
+cmd = "python wsgi.py"
